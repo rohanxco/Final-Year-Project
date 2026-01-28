@@ -10,15 +10,25 @@ class LocationService {
 
     final perm = await Geolocator.checkPermission();
     if (perm == LocationPermission.denied) return LocationStatus.denied;
-    if (perm == LocationPermission.deniedForever) return LocationStatus.deniedForever;
+    if (perm == LocationPermission.deniedForever) {
+      return LocationStatus.deniedForever;
+    }
 
     return LocationStatus.ready;
   }
 
+  /// Requests permission. Note: On Web (Safari/Chrome) the browser may only
+  /// show the prompt once; if user denied, future calls won't reprompt.
   static Future<LocationStatus> requestPermission() async {
+    final enabled = await Geolocator.isLocationServiceEnabled();
+    if (!enabled) return LocationStatus.servicesOff;
+
     final perm = await Geolocator.requestPermission();
     if (perm == LocationPermission.denied) return LocationStatus.denied;
-    if (perm == LocationPermission.deniedForever) return LocationStatus.deniedForever;
+    if (perm == LocationPermission.deniedForever) {
+      return LocationStatus.deniedForever;
+    }
+
     return LocationStatus.ready;
   }
 
@@ -28,4 +38,8 @@ class LocationService {
     // ignore: deprecated_member_use
     return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
+
+  static Future<void> openLocationSettings() async {}
+
+  static Future<dynamic> openAppSettings() async {}
 }

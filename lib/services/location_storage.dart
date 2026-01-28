@@ -28,4 +28,17 @@ class LocationStorage {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kManualLocation);
   }
+
+  /// Backwards-compatible alias (in case other files call it)
+  static Future<LocationSelection?> getManualLocation() async {
+    return loadManualLocation();
+  }
+
+  /// Used by Qibla/Prayer screens: returns saved manual location if it has coords.
+  static Future<LocationSelection?> getSavedLocation() async {
+    final loc = await loadManualLocation();
+    if (loc == null) return null;
+    if (loc.latitude == null || loc.longitude == null) return null;
+    return loc;
+  }
 }
