@@ -26,7 +26,7 @@ jobs:
 
       - run: flutter --version
       - run: flutter pub get
-      - run: flutter build web --release --base-href "/islamic_companion_app/"
+      - run: flutter build web --release --base-href "/Final-Year-Project/"
 
       - uses: actions/upload-pages-artifact@v3
         with:
