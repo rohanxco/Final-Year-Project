@@ -1,6 +1,6 @@
 {
-    "name": "islamic_companion_app",
-    "short_name": "islamic_companion_app",
+    "name": "Azaan",
+    "short_name": "Azaan",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
