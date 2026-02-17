@@ -7,7 +7,7 @@ A cross-platform Islamic Companion application built with **Flutter**, providing
 - Clean, modern UI
 
 🔗 **Live Web App:**  
-https://rohanxco.github.io/islamic_companion_app/
+https://rohanxco.github.io/Final-Year-Project/
 
 ---
 
