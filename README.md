@@ -117,3 +117,15 @@ The focus is on accessibility, reliability, and cross-platform deployment.
 ## License
 
 This project is for academic and demonstration purposes.
+## Why This Project Matters
+
+This project demonstrates:
+
+- Cross-platform Flutter development
+- Real-world geolocation handling
+- Mathematical Qibla bearing computation
+- GitHub Pages deployment
+- Android release pipeline
+- Agile iterative development with version control
+
+It showcases practical problem solving, deployment experience, and production-ready structuring.
