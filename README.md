@@ -13,13 +13,13 @@ https://rohanxco.github.io/islamic_companion_app/
 
 ##  Features
 
-- 📍 **Automatic location detection**
-- 🕋 **Qibla direction**
+-  **Automatic location detection**
+-  **Qibla direction**
   - Web: calculated bearing + static arrow
   - Mobile (Android/iOS): real-time compass rotation
-- 🕰️ **Daily prayer times**
-- ⚙️ **Manual location settings** (fallback when GPS is unavailable)
-- 🌍 Works worldwide
+-  **Daily prayer times**
+-  **Manual location settings** (fallback when GPS is unavailable)
+-  Works worldwide
 
 ---
 
