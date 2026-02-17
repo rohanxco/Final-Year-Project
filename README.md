@@ -117,6 +117,9 @@ The focus is on accessibility, reliability, and cross-platform deployment.
 ## License
 
 This project is for academic and demonstration purposes.
+
+---
+
 ## Why This Project Matters
 
 This project demonstrates:
