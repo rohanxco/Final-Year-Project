@@ -1,4 +1,4 @@
-# Azaan – Location-Aware Prayer Times & Qibla Application
+# Azaan 
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)
 ![Dart](https://img.shields.io/badge/Dart-3.x-blue?logo=dart)
