@@ -1,7 +1,8 @@
-// lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
+
 import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
+import 'quran_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -24,16 +25,29 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+
           _Tile(
             icon: Icons.explore,
             title: "Qibla",
-            subtitle: "Simple Qibla placeholder screen",
+            subtitle: "Bearing + arrow guidance",
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const QiblaScreen()),
             ),
           ),
           const SizedBox(height: 12),
+
+          _Tile(
+            icon: Icons.menu_book,
+            title: "Qur'an",
+            subtitle: "Read Surahs and verses",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QuranScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+
           _Tile(
             icon: Icons.settings,
             title: "Settings",

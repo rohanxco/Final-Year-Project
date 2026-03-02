@@ -1,7 +1,7 @@
-name: islamic_companion_app
-description: "A new Flutter project."
+name: azaan
+description: "Azaan - Prayer Times, Qibla, and Quran utility app (Flutter)."
 publish_to: "none"
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ">=3.10.7 <4.0.0"
@@ -21,8 +21,14 @@ dependencies:
 
   # Local storage (method/madhab preferences)
   shared_preferences: ^2.5.4
+
+  # Compass (mobile only)
   flutter_compass: ^0.8.1
+
+  # Open Google Maps / external links
   url_launcher: ^6.3.2
+
+  # HTTP (future: APIs like Places, Quran sources, etc.)
   http: ^1.6.0
 
 dev_dependencies:
@@ -32,3 +38,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/quran/
+  
