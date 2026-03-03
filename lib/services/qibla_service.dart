@@ -19,8 +19,7 @@ class QiblaService {
     final dLon = lon2 - lon1;
 
     final y = sin(dLon) * cos(lat2);
-    final x =
-        cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+    final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
 
     final bearingRad = atan2(y, x);
     final bearingDeg = (_radToDeg(bearingRad) + 360.0) % 360.0;

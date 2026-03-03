@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/quran_service.dart';
+import 'surah_detail_screen.dart';
 
 class QuranScreen extends StatefulWidget {
   const QuranScreen({super.key});
@@ -42,23 +43,35 @@ class _QuranScreenState extends State<QuranScreen> {
 
           final surahs = snapshot.data ?? [];
           if (surahs.isEmpty) {
-            return const Center(child: Text("⚠️ Loaded, but surahs list is empty."));
+            return const Center(
+              child: Text("⚠️ Loaded, but surahs list is empty."),
+            );
           }
 
           return ListView.separated(
             itemCount: surahs.length,
             separatorBuilder: (_, __) => const Divider(height: 1),
             itemBuilder: (context, index) {
-              final s = surahs[index] as Map<String, dynamic>;
-              final number = (s['number'] ?? '').toString();
+              final s = Map<String, dynamic>.from(surahs[index] as Map);
+
+              final number = (s['number'] ?? (index + 1)).toString();
               final englishName = (s['englishName'] ?? 'Unknown').toString();
               final translation = (s['englishNameTranslation'] ?? '').toString();
-              final ayahs = (s['ayahs'] as List?)?.length ?? 0;
+              final ayahCount = (s['ayahs'] is List) ? (s['ayahs'] as List).length : 0;
 
               return ListTile(
                 title: Text("$number. $englishName"),
-                subtitle: Text(translation),
-                trailing: Text("$ayahs"),
+                subtitle: translation.isEmpty ? null : Text(translation),
+                trailing: Text("$ayahCount"),
+                onTap: () {
+                  debugPrint("✅ TAP WORKS on $englishName");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SurahDetailScreen(surah: s),
+                    ),
+                  );
+                },
               );
             },
           );

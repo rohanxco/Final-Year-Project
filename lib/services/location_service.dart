@@ -36,7 +36,9 @@ class LocationService {
     // Newer geolocator versions prefer LocationSettings,
     // but this still works; you can upgrade later.
     // ignore: deprecated_member_use
-    return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    return Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
   }
 
   static Future<void> openLocationSettings() async {}

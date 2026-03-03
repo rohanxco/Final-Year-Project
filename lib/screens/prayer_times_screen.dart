@@ -48,7 +48,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       if (lat == null || lon == null) {
         final status = await LocationService.getStatus();
         if (status == LocationStatus.servicesOff) {
-          throw Exception('Location services are off. Turn them on or set a manual location.');
+          throw Exception(
+            'Location services are off. Turn them on or set a manual location.',
+          );
         }
         if (status == LocationStatus.denied) {
           final req = await LocationService.requestPermission();
@@ -57,7 +59,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           }
         }
         if (status == LocationStatus.deniedForever) {
-          throw Exception('Location permission is permanently denied. Enable it in system settings.');
+          throw Exception(
+            'Location permission is permanently denied. Enable it in system settings.',
+          );
         }
 
         final Position pos = await LocationService.getCurrentPosition();
@@ -108,35 +112,35 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _ErrorView(message: _error!, onRetry: _load)
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (_locationLabel != null)
-                      Text(
-                        _locationLabel!,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    const SizedBox(height: 8),
-                    if (_nextPrayerLabel != null)
-                      Card(
-                        child: ListTile(
-                          leading: const Icon(Icons.schedule),
-                          title: const Text('Next prayer'),
-                          trailing: Text(_nextPrayerLabel!),
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    ..._times.entries.map(
-                      (e) => Card(
-                        child: ListTile(
-                          title: Text(e.key),
-                          trailing: Text(e.value),
-                        ),
-                      ),
+          ? _ErrorView(message: _error!, onRetry: _load)
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (_locationLabel != null)
+                  Text(
+                    _locationLabel!,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                const SizedBox(height: 8),
+                if (_nextPrayerLabel != null)
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.schedule),
+                      title: const Text('Next prayer'),
+                      trailing: Text(_nextPrayerLabel!),
                     ),
-                  ],
+                  ),
+                const SizedBox(height: 8),
+                ..._times.entries.map(
+                  (e) => Card(
+                    child: ListTile(
+                      title: Text(e.key),
+                      trailing: Text(e.value),
+                    ),
+                  ),
                 ),
+              ],
+            ),
     );
   }
 }
@@ -157,10 +161,7 @@ class _ErrorView extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 44),
             const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
+            Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: onRetry,

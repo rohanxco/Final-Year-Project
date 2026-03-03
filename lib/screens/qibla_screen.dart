@@ -113,7 +113,8 @@ class _QiblaScreenState extends State<QiblaScreen> {
     if (!mounted) return;
     setState(() {
       _loading = false;
-      _error = msg ?? 'Could not get location.\n\nSet Manual Location in Settings.';
+      _error =
+          msg ?? 'Could not get location.\n\nSet Manual Location in Settings.';
     });
   }
 
@@ -126,12 +127,12 @@ class _QiblaScreenState extends State<QiblaScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : (_error != null)
-              ? _ErrorView(message: _error!, onRetry: _init)
-              : _QiblaView(
-                  bearing: bearing!,
-                  heading: _heading,
-                  sourceLabel: _sourceLoc?.displayName ?? 'Location',
-                ),
+          ? _ErrorView(message: _error!, onRetry: _init)
+          : _QiblaView(
+              bearing: bearing!,
+              heading: _heading,
+              sourceLabel: _sourceLoc?.displayName ?? 'Location',
+            ),
     );
   }
 }
@@ -150,8 +151,9 @@ class _QiblaView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rotationDeg = (heading == null) ? bearing : (bearing - heading!);
-    final mode =
-        (heading == null) ? 'Web / Static (no compass)' : 'Mobile / Compass mode';
+    final mode = (heading == null)
+        ? 'Web / Static (no compass)'
+        : 'Mobile / Compass mode';
 
     return ListView(
       padding: const EdgeInsets.all(20),

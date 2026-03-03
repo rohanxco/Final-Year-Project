@@ -15,21 +15,28 @@ class LocationSelection {
   bool get hasCoords => latitude != null && longitude != null;
 
   String get displayName {
-    final c = (country == null || country!.trim().isEmpty) ? '' : ', ${country!.trim()}';
+    final c = (country == null || country!.trim().isEmpty)
+        ? ''
+        : ', ${country!.trim()}';
     return '${city.trim()}$c';
   }
 
   Map<String, dynamic> toJson() => {
-        'city': city,
-        'country': country,
-        'latitude': latitude,
-        'longitude': longitude,
-      };
+    'city': city,
+    'country': country,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
 
-  static LocationSelection fromJson(Map<String, dynamic> json) => LocationSelection(
+  static LocationSelection fromJson(Map<String, dynamic> json) =>
+      LocationSelection(
         city: (json['city'] ?? '').toString(),
         country: json['country']?.toString(),
-        latitude: (json['latitude'] is num) ? (json['latitude'] as num).toDouble() : null,
-        longitude: (json['longitude'] is num) ? (json['longitude'] as num).toDouble() : null,
+        latitude: (json['latitude'] is num)
+            ? (json['latitude'] as num).toDouble()
+            : null,
+        longitude: (json['longitude'] is num)
+            ? (json['longitude'] as num).toDouble()
+            : null,
       );
 }

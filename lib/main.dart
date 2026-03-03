@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const IslamicCompanionApp());
+  runApp(const AzaanApp());
 }
 
-class IslamicCompanionApp extends StatelessWidget {
-  const IslamicCompanionApp({super.key});
+class AzaanApp extends StatelessWidget {
+  const AzaanApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +15,7 @@ class IslamicCompanionApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.deepPurple,
+        colorSchemeSeed: const Color.fromARGB(255, 99, 13, 13),
       ),
       home: const HomeScreen(),
     );
