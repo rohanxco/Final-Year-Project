@@ -91,7 +91,111 @@ This project is developed as part of a Final Year Software Engineering project, 
 
 ## Running Locally
 
-### 1️⃣ Install Dependencies
+###  Install Dependencies
 
 ```bash
 flutter pub get
+```
+
+---
+
+###  Run on Web
+
+```bash
+flutter run -d chrome
+```
+
+---
+
+###  Run on macOS Desktop
+
+```bash
+flutter run -d macos
+```
+
+---
+
+###  Run on Android Emulator
+
+```bash
+flutter run -d android
+```
+
+To see available devices:
+
+```bash
+flutter devices
+```
+
+---
+
+###  Run on Physical Android Device
+
+Enable Developer Mode and USB Debugging, then:
+
+```bash
+flutter devices
+flutter run -d <device_id>
+```
+
+---
+
+### Run on iOS Simulator (Mac Only)
+
+#### First-Time Setup (Only Required Once)
+
+```bash
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license accept
+sudo xcodebuild -runFirstLaunch
+```
+
+#### Open Simulator
+
+```bash
+open -a Simulator
+```
+
+#### Run the App
+
+```bash
+flutter run -d ios
+```
+
+Or specify simulator name:
+
+```bash
+flutter run -d "iPhone 16e"
+```
+
+---
+
+###  Clean & Rebuild (If Something Breaks)
+
+```bash
+flutter clean
+flutter pub get
+flutter run -d chrome
+```
+
+---
+
+###  Build Release Versions
+
+#### Android APK
+
+```bash
+flutter build apk --release
+```
+
+#### Web
+
+```bash
+flutter build web --release --base-href "/Final-Year-Project/"
+```
+
+#### iOS
+
+```bash
+flutter build ios --release
+```
