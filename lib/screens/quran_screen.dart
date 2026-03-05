@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../services/quran_service.dart';
+import 'package:flutter/services.dart' show rootBundle;
+
 import 'surah_detail_screen.dart';
 
 class QuranScreen extends StatefulWidget {
@@ -10,68 +12,82 @@ class QuranScreen extends StatefulWidget {
 }
 
 class _QuranScreenState extends State<QuranScreen> {
-  late Future<List<dynamic>> _surahsFuture;
+  bool _loading = true;
+  String? _error;
+  List<Map<String, dynamic>> _surahs = const [];
 
   @override
   void initState() {
     super.initState();
-    _surahsFuture = QuranService.loadSurahs();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final raw = await rootBundle.loadString('assets/quran/quran.json');
+      final jsonMap = json.decode(raw) as Map<String, dynamic>;
+      final data = jsonMap['data'] as Map<String, dynamic>;
+      final surahs = (data['surahs'] as List).cast<Map>();
+
+      setState(() {
+        _surahs = surahs.map((e) => Map<String, dynamic>.from(e)).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Qur'an")),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text("Qur'an")),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text("Failed to load Quran JSON:\n$_error"),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text("Qur'an")),
-      body: FutureBuilder<List<dynamic>>(
-        future: _surahsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: _surahs.length,
+        // ignore: unnecessary_underscores
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final s = _surahs[index];
+          final number = (s['number'] ?? '').toString();
+          final englishName = (s['englishName'] ?? '').toString();
+          final arabicName = (s['name'] ?? '').toString();
+          final ayahCount = (s['ayahs'] is List)
+              ? (s['ayahs'] as List).length
+              : 0;
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  "❌ Failed to load Qur'an JSON\n\n${snapshot.error}",
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
+          return ListTile(
+            title: Text("$number. $englishName"),
+            subtitle: Text("$arabicName • Ayaat: $ayahCount"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              // Debug proof (optional)
+              // ignore: avoid_print
+              print("✅ TAP WORKS on $englishName");
 
-          final surahs = snapshot.data ?? [];
-          if (surahs.isEmpty) {
-            return const Center(
-              child: Text("⚠️ Loaded, but surahs list is empty."),
-            );
-          }
-
-          return ListView.separated(
-            itemCount: surahs.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, index) {
-              final s = Map<String, dynamic>.from(surahs[index] as Map);
-
-              final number = (s['number'] ?? (index + 1)).toString();
-              final englishName = (s['englishName'] ?? 'Unknown').toString();
-              final translation = (s['englishNameTranslation'] ?? '').toString();
-              final ayahCount = (s['ayahs'] is List) ? (s['ayahs'] as List).length : 0;
-
-              return ListTile(
-                title: Text("$number. $englishName"),
-                subtitle: translation.isEmpty ? null : Text(translation),
-                trailing: Text("$ayahCount"),
-                onTap: () {
-                  debugPrint("✅ TAP WORKS on $englishName");
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SurahDetailScreen(surah: s),
-                    ),
-                  );
-                },
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SurahDetailScreen(surah: s)),
               );
             },
           );

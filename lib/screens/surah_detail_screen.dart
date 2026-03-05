@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 class SurahDetailScreen extends StatefulWidget {
@@ -9,25 +10,23 @@ class SurahDetailScreen extends StatefulWidget {
 }
 
 class _SurahDetailScreenState extends State<SurahDetailScreen> {
-  final ScrollController _controller = ScrollController();
-  bool _showToTop = false;
+  static const String _bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
 
-  static const String _bismillah = 'بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
+  // Prefix matcher for your dataset:
+  static final RegExp _bismillahPrefix = RegExp(
+    r'^\s*بِسْمِ\s+ٱللَّهِ\s+ٱلرَّحْمَٰنِ\s+ٱلرَّحِيمِ\s*',
+  );
 
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(() {
-      final shouldShow = _controller.offset > 450;
-      if (shouldShow != _showToTop) {
-        setState(() => _showToTop = shouldShow);
-      }
-    });
-  }
+  final PageController _pageController = PageController();
+  int _pageIndex = 0;
+
+  // Pagination cache
+  List<List<_AyahPiece>> _pages = [];
+  double _lastWidth = -1;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -42,168 +41,451 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     return buf.toString();
   }
 
-  bool _isBismillahExact(String text) {
-    // normalize spaces
-    final a = text.replaceAll(RegExp(r'\s+'), ' ').trim();
-    final b = _bismillah.replaceAll(RegExp(r'\s+'), ' ').trim();
-    return a == b;
+  bool _hasSajda(dynamic a) {
+    // Supports different JSON shapes:
+    // - "sajda": true
+    // - "sajda": {"recommended": true} or {"obligatory": true}
+    final v = (a is Map) ? a['sajda'] : null;
+    if (v is bool) return v;
+    if (v is Map) {
+      final rec = v['recommended'];
+      final obl = v['obligatory'];
+      return (rec == true) || (obl == true);
+    }
+    return false;
+  }
+
+  String _stripLeadingBismillahIfNeeded({
+    required int surahNumber,
+    required int ayahIndex,
+    required String text,
+  }) {
+    // Your rule:
+    // - Surah 1: NO header, keep ayah1 bismillah intact
+    // - Surah 9: NO header, no stripping
+    // - Others: YES header, strip bismillah from ayah 1 only
+    final shouldStrip =
+        (surahNumber != 1 && surahNumber != 9 && ayahIndex == 0);
+    if (!shouldStrip) return text;
+
+    final stripped = text.replaceFirst(_bismillahPrefix, '').trim();
+    return stripped.isEmpty ? text : stripped;
+  }
+
+  List<_AyahPiece> _buildAyahPieces({
+    required int surahNumber,
+    required List<Map> ayahs,
+  }) {
+    final pieces = <_AyahPiece>[];
+    for (int i = 0; i < ayahs.length; i++) {
+      final a = Map<String, dynamic>.from(ayahs[i]);
+      final raw = (a['text'] ?? '').toString();
+
+      final display = _stripLeadingBismillahIfNeeded(
+        surahNumber: surahNumber,
+        ayahIndex: i,
+        text: raw,
+      );
+
+      final numInSurah =
+          int.tryParse((a['numberInSurah'] ?? (i + 1)).toString()) ?? (i + 1);
+
+      pieces.add(
+        _AyahPiece(
+          text: display,
+          ayahNumberInSurah: numInSurah,
+          hasSajda: _hasSajda(a),
+        ),
+      );
+    }
+    return pieces;
+  }
+
+  /// Paginate into pages of EXACTLY up to 20 lines using TextPainter measurement.
+  List<List<_AyahPiece>> _paginate20Lines({
+    required List<_AyahPiece> pieces,
+    required double maxWidth,
+    required TextStyle textStyle,
+    required int maxLinesPerPage,
+  }) {
+    final pages = <List<_AyahPiece>>[];
+
+    final current = <_AyahPiece>[];
+    final spans = <InlineSpan>[];
+
+    bool fitsWith(List<InlineSpan> trySpans) {
+      final tp = TextPainter(
+        text: TextSpan(children: trySpans),
+        textDirection: TextDirection.rtl,
+        textAlign: TextAlign.center, // Mushaf feel
+        maxLines: maxLinesPerPage,
+        ellipsis: null,
+      )..layout(maxWidth: maxWidth);
+
+      // if text exceeds maxLines, painter will overflow vertically.
+      return !tp.didExceedMaxLines;
+    }
+
+    void commitPage() {
+      if (current.isNotEmpty) {
+        pages.add(List<_AyahPiece>.from(current));
+        current.clear();
+        spans.clear();
+      }
+    }
+
+    for (final p in pieces) {
+      // Build the ayah as rich span:
+      final ayahSpan = _ayahInlineSpan(
+        p,
+        textStyle: textStyle,
+        numberText: _toArabicIndic(p.ayahNumberInSurah),
+      );
+
+      final trySpans = <InlineSpan>[
+        ...spans,
+        ayahSpan,
+        const TextSpan(text: '  '),
+      ];
+
+      if (spans.isEmpty) {
+        spans.add(ayahSpan);
+        spans.add(const TextSpan(text: '  '));
+        current.add(p);
+        continue;
+      }
+
+      if (fitsWith(trySpans)) {
+        spans.add(ayahSpan);
+        spans.add(const TextSpan(text: '  '));
+        current.add(p);
+      } else {
+        // Start new page
+        commitPage();
+
+        spans.add(ayahSpan);
+        spans.add(const TextSpan(text: '  '));
+        current.add(p);
+      }
+    }
+
+    commitPage();
+    return pages;
+  }
+
+  InlineSpan _ayahInlineSpan(
+    _AyahPiece p, {
+    required TextStyle textStyle,
+    required String numberText,
+  }) {
+    // Mushaf-like: ayah text + sajda marker + medallion number.
+    return TextSpan(
+      children: [
+        TextSpan(text: p.text, style: textStyle),
+        if (p.hasSajda)
+          TextSpan(
+            text: ' ۩ ',
+            style: textStyle.copyWith(fontSize: textStyle.fontSize! * 0.9),
+          )
+        else
+          const TextSpan(text: '  '),
+
+        // Medallion as a widget span
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final s = widget.surah;
-    final number = (s['number'] ?? '').toString();
+    final surahNumber = int.tryParse((s['number'] ?? '').toString()) ?? 0;
+
     final englishName = (s['englishName'] ?? '').toString();
     final arabicName = (s['name'] ?? '').toString();
 
     final ayahs = (s['ayahs'] as List?)?.cast<Map>() ?? const [];
-    final surahNumber = int.tryParse(number) ?? 0;
 
-    // ✅ Bismillah header logic (except Surah 9)
-    final showBismillahHeader = surahNumber != 9;
+    // Header rules:
+    // - Surah 1: NO header
+    // - Surah 9: NO header
+    // - All others: YES header
+    final showBismillahHeader = surahNumber != 1 && surahNumber != 9;
 
-    // Many datasets include Bismillah as ayah[0] for most surahs.
-    // For production feel:
-    // - For surahs other than 1, if ayah1 == Bismillah, we show header and SKIP that ayah from list.
-    // - For Al-Fatiha (1), we DO NOT skip because it’s commonly treated as ayah 1 in many prints.
-    int startIndex = 0;
-    if (showBismillahHeader && surahNumber != 1 && ayahs.isNotEmpty) {
-      final firstText = (ayahs.first['text'] ?? '').toString();
-      if (_isBismillahExact(firstText)) startIndex = 1;
-    }
+    // Main mushaf style (you already registered AmiriQuran in FontManifest)
+    final mushafStyle = const TextStyle(
+      fontFamily: 'AmiriQuran',
+      fontSize: 26,
+      height: 2.15, // very important for correct shaping / mushaf spacing
+      fontWeight: FontWeight.w400,
+    );
+
+    final pieces = _buildAyahPieces(surahNumber: surahNumber, ayahs: ayahs);
 
     return Scaffold(
-      appBar: AppBar(title: Text("$number. $englishName")),
-      floatingActionButton: _showToTop
-          ? FloatingActionButton(
-              onPressed: () {
-                _controller.animateTo(
-                  0,
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeOut,
-                );
-              },
-              child: const Icon(Icons.keyboard_arrow_up),
-            )
-          : null,
-      body: ListView(
-        controller: _controller,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        children: [
-          if (arabicName.isNotEmpty)
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: Text(
-                arabicName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
-                  height: 1.6,
-                ),
-              ),
-            ),
-          const SizedBox(height: 10),
+      appBar: AppBar(
+        title: Text('$surahNumber. $englishName'),
+        centerTitle: true,
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Inner area width (inside frame padding)
+          final pageWidth = math.min(constraints.maxWidth, 900.0);
+          final innerWidth = pageWidth - 120; // matches padding below
 
-          if (showBismillahHeader)
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 12,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withOpacity(0.6),
-                ),
-                child: Text(
-                  _bismillah,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w600,
-                    height: 1.9,
+          // Build pages only when width changes (web resize safe)
+          if (_lastWidth != innerWidth) {
+            _lastWidth = innerWidth;
+            _pages = _paginate20Lines(
+              pieces: pieces,
+              maxWidth: innerWidth,
+              textStyle: mushafStyle,
+              maxLinesPerPage: 20,
+            );
+            _pageIndex = 0;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_pageController.hasClients) {
+                _pageController.jumpToPage(0);
+              }
+              if (mounted) setState(() {});
+            });
+          }
+
+          return Center(
+            child: SizedBox(
+              width: pageWidth,
+              child: Stack(
+                children: [
+                  // Mushaf frame background
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/images/mushaf_frame.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
-                ),
+
+                  // Content inside the frame
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(60, 70, 60, 70),
+                      child: Column(
+                        children: [
+                          // Surah title ornament
+                          _SurahHeader(
+                            arabicName: arabicName,
+                            showBismillahHeader: showBismillahHeader,
+                            bismillah: _bismillah,
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // Pages
+                          Expanded(
+                            child: Directionality(
+                              textDirection: TextDirection.rtl,
+                              child: PageView.builder(
+                                controller: _pageController,
+                                itemCount: _pages.isEmpty ? 1 : _pages.length,
+                                onPageChanged: (i) =>
+                                    setState(() => _pageIndex = i),
+                                itemBuilder: (context, i) {
+                                  if (_pages.isEmpty) {
+                                    return const Center(
+                                      child: Text('No ayahs found.'),
+                                    );
+                                  }
+
+                                  // Render the page as a single RichText so it behaves like Mushaf lines.
+                                  final pagePieces = _pages[i];
+                                  final spans = <InlineSpan>[];
+                                  for (final p in pagePieces) {
+                                    spans.add(
+                                      _ayahInlineSpan(
+                                        p,
+                                        textStyle: mushafStyle,
+                                        numberText: _toArabicIndic(
+                                          p.ayahNumberInSurah,
+                                        ),
+                                      ),
+                                    );
+                                    spans.add(const TextSpan(text: '  '));
+                                  }
+
+                                  return SingleChildScrollView(
+                                    // Allow a tiny scroll if needed, but ideally pagination fits.
+                                    physics: const BouncingScrollPhysics(),
+                                    child: RichText(
+                                      textAlign: TextAlign.center,
+                                      textDirection: TextDirection.rtl,
+                                      text: TextSpan(
+                                        style: mushafStyle,
+                                        children: spans,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          // Page number
+                          Text(
+                            'صفحة ${_toArabicIndic(_pageIndex + 1)} / ${_toArabicIndic(math.max(_pages.length, 1))}',
+                            style: const TextStyle(
+                              fontFamily: 'AmiriQuran',
+                              fontSize: 16,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-
-          const SizedBox(height: 14),
-
-          for (int i = startIndex; i < ayahs.length; i++) ...[
-            _AyahRow(
-              ayahNumber: i + 1, // keep original ayah number index-based
-              arabicIndic: _toArabicIndic(i + 1),
-              text: (ayahs[i]['text'] ?? '').toString(),
-            ),
-            const Divider(height: 18),
-          ],
-        ],
+          );
+        },
       ),
     );
   }
 }
 
-class _AyahRow extends StatelessWidget {
-  final int ayahNumber;
-  final String arabicIndic;
-  final String text;
+class _SurahHeader extends StatelessWidget {
+  final String arabicName;
+  final bool showBismillahHeader;
+  final String bismillah;
 
-  const _AyahRow({
-    required this.ayahNumber,
-    required this.arabicIndic,
-    required this.text,
+  const _SurahHeader({
+    required this.arabicName,
+    required this.showBismillahHeader,
+    required this.bismillah,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (text.trim().isEmpty) return const SizedBox.shrink();
+    final ornamentExists = true; // set false if you don’t add the asset
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ✅ Ayah number circle badge
-          Container(
-            width: 34,
-            height: 34,
-            margin: const EdgeInsets.only(left: 10),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.12),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.35),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              arabicIndic,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+    return Column(
+      children: [
+        if (ornamentExists)
+          SizedBox(
+            height: 42,
+            child: Image.asset(
+              'assets/images/surah_ornament.png',
+              fit: BoxFit.contain,
+              errorBuilder: (_, _, _) {
+                // If ornament not found, fallback to text title.
+                return const SizedBox.shrink();
+              },
             ),
           ),
 
-          // ✅ Better Arabic spacing
-          Expanded(
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: Text(
+            arabicName,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'AmiriQuran',
+              fontSize: 30,
+              height: 1.6,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        if (showBismillahHeader) ...[
+          const SizedBox(height: 10),
+          Directionality(
+            textDirection: TextDirection.rtl,
             child: Text(
-              text,
-              textAlign: TextAlign.right,
+              bismillah,
+              textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 22,
-                height: 2.05,
-                letterSpacing: 0.2,
+                fontFamily: 'AmiriQuran',
+                fontSize: 24,
+                height: 2.1,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+// ignore: unused_element
+class _AyahMedallion extends StatelessWidget {
+  final String numberText;
+  const _AyahMedallion({required this.numberText});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _MedallionPainter(
+        // ignore: deprecated_member_use
+        stroke: Theme.of(context).colorScheme.outline.withOpacity(0.45),
+        // ignore: deprecated_member_use
+        fill: Theme.of(context).colorScheme.surface.withOpacity(0.75),
+      ),
+      child: SizedBox(
+        width: 34,
+        height: 34,
+        child: Center(
+          child: Text(
+            numberText,
+            style: const TextStyle(
+              fontFamily: 'AmiriQuran',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              height: 1.0,
+            ),
+          ),
+        ),
       ),
     );
   }
+}
+
+class _MedallionPainter extends CustomPainter {
+  final Color stroke;
+  final Color fill;
+  _MedallionPainter({required this.stroke, required this.fill});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = size.shortestSide / 2;
+
+    final fillPaint = Paint()..color = fill;
+    final strokePaint = Paint()
+      ..color = stroke
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+
+    // Outer circle
+    canvas.drawCircle(Offset(r, r), r - 1, fillPaint);
+    canvas.drawCircle(Offset(r, r), r - 1, strokePaint);
+
+    // Inner decorative ring
+    canvas.drawCircle(Offset(r, r), r - 6, strokePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _MedallionPainter oldDelegate) =>
+      oldDelegate.stroke != stroke || oldDelegate.fill != fill;
+}
+
+class _AyahPiece {
+  final String text;
+  final int ayahNumberInSurah;
+  final bool hasSajda;
+
+  _AyahPiece({
+    required this.text,
+    required this.ayahNumberInSurah,
+    required this.hasSajda,
+  });
 }

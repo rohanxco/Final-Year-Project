@@ -15,7 +15,8 @@ class AzaanApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: const Color.fromARGB(255, 99, 13, 13),
+        colorSchemeSeed: const Color.fromARGB(255, 25, 57, 218),
+        fontFamily: 'Amiri',
       ),
       home: const HomeScreen(),
     );

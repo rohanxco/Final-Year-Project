@@ -37,6 +37,7 @@ class LocationService {
     // but this still works; you can upgrade later.
     // ignore: deprecated_member_use
     return Geolocator.getCurrentPosition(
+      // ignore: deprecated_member_use
       desiredAccuracy: LocationAccuracy.high,
     );
   }
