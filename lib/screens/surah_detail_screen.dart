@@ -48,6 +48,18 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
     return text.replaceAll(RegExp(r'[\u06D6-\u06ED۝؞﴿﴾]'), '').trim();
   }
 
+  bool _isSajdahAyah(dynamic sajdaValue) {
+    if (sajdaValue == null || sajdaValue == false) return false;
+    if (sajdaValue == true) return true;
+
+    if (sajdaValue is Map) {
+      return sajdaValue['recommended'] == true ||
+          sajdaValue['obligatory'] == true;
+    }
+
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = widget.surah;
@@ -80,7 +92,6 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
               ),
             ),
           const SizedBox(height: 12),
-
           if (showBismillahHeader)
             Directionality(
               textDirection: TextDirection.rtl,
@@ -105,9 +116,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                 ),
               ),
             ),
-
           const SizedBox(height: 14),
-
           for (int i = 0; i < ayahs.length; i++) ...[
             _AyahRow(
               ayahNumber: _toArabicIndic(
@@ -123,6 +132,7 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
                   text: (ayahs[i]['text'] ?? '').toString(),
                 ),
               ),
+              isSajdah: _isSajdahAyah(ayahs[i]['sajda']),
             ),
             const SizedBox(height: 10),
           ],
@@ -135,8 +145,13 @@ class _SurahDetailScreenState extends State<SurahDetailScreen> {
 class _AyahRow extends StatelessWidget {
   final String arabicText;
   final String ayahNumber;
+  final bool isSajdah;
 
-  const _AyahRow({required this.arabicText, required this.ayahNumber});
+  const _AyahRow({
+    required this.arabicText,
+    required this.ayahNumber,
+    required this.isSajdah,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -159,10 +174,12 @@ class _AyahRow extends StatelessWidget {
                     ),
                   ),
                   TextSpan(
-                    text: '  ﴿$ayahNumber﴾',
+                    text: isSajdah
+                        ? '  ﴿$ayahNumber﴾ ۩ [You must perform a Sujood here]'
+                        : '  ﴿$ayahNumber﴾',
                     style: const TextStyle(
                       fontFamily: 'UthmanicHafs',
-                      fontSize: 30,
+                      fontSize: 22,
                       height: 2.0,
                       fontWeight: FontWeight.normal,
                     ),
