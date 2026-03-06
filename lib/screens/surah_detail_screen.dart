@@ -144,40 +144,33 @@ class _AyahRow extends StatelessWidget {
       children: [
         Directionality(
           textDirection: TextDirection.rtl,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  arabicText,
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    fontFamily: 'UthmanicHafs',
-                    fontSize: 22,
-                    height: 2.0,
-                    fontWeight: FontWeight.w500,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: arabicText,
+                    style: const TextStyle(
+                      fontFamily: 'UthmanicHafs',
+                      fontSize: 22,
+                      height: 3.0,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withValues(alpha: 0.35),
+                  TextSpan(
+                    text: '  ﴿$ayahNumber﴾',
+                    style: const TextStyle(
+                      fontFamily: 'UthmanicHafs',
+                      fontSize: 30,
+                      height: 2.0,
+                      fontWeight: FontWeight.normal,
+                    ),
                   ),
-                ),
-                child: Text(
-                  ayahNumber,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
+                ],
               ),
-            ],
+              textAlign: TextAlign.right,
+            ),
           ),
         ),
         const SizedBox(height: 10),
