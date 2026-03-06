@@ -13,11 +13,7 @@ class AzaanApp extends StatelessWidget {
     return MaterialApp(
       title: 'Azaan',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color.fromARGB(255, 25, 57, 218),
-        fontFamily: 'Amiri',
-      ),
+      theme: ThemeData(useMaterial3: true, fontFamily: 'Amiri'),
       home: const HomeScreen(),
     );
   }

@@ -1,13 +1,14 @@
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart';
 
 class QuranService {
   static Future<List<dynamic>> loadSurahs() async {
-    final raw = await rootBundle.loadString('assets/quran/quran.json');
-    final decoded = jsonDecode(raw) as Map<String, dynamic>;
+    final jsonStr = await rootBundle.loadString('assets/quran/quran.json');
+    final data = json.decode(jsonStr);
 
-    final data = decoded['data'] as Map<String, dynamic>;
-    final surahs = data['surahs'] as List<dynamic>;
-    return surahs;
+    final surahs = data['data']?['surahs'];
+    if (surahs is List) return surahs;
+
+    throw Exception("Invalid Quran JSON structure: data.surahs not found");
   }
 }
