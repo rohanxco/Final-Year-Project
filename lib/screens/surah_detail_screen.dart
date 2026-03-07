@@ -174,15 +174,37 @@ class _AyahRow extends StatelessWidget {
                     ),
                   ),
                   TextSpan(
-                    text: isSajdah
-                        ? '  ﴿$ayahNumber﴾ ۩ [You must perform a Sujood here]'
-                        : '  ﴿$ayahNumber﴾',
-                    style: const TextStyle(
-                      fontFamily: 'UthmanicHafs',
-                      fontSize: 22,
-                      height: 2.0,
-                      fontWeight: FontWeight.normal,
-                    ),
+                    children: [
+                      TextSpan(
+                        text: '  ﴿$ayahNumber﴾',
+                        style: const TextStyle(
+                          fontFamily: 'UthmanicHafs',
+                          fontSize: 22,
+                          height: 2.0,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+
+                      if (isSajdah)
+                        const TextSpan(
+                          text: ' ۩ ',
+                          style: TextStyle(
+                            fontFamily: 'UthmanicHafs',
+                            fontSize: 22,
+                          ),
+                        ),
+
+                      if (isSajdah)
+                        const TextSpan(
+                          text: '{SIJDAH AYAH}',
+                          style: TextStyle(
+                            fontFamily: 'Arial',
+                            fontSize: 16,
+                            color: Color.fromARGB(255, 2, 72, 40),
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),
