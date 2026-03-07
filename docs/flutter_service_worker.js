@@ -3,11 +3,11 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"flutter_bootstrap.js": "dfb820f515940df7ef8b3840e84fd3e2",
+const RESOURCES = {"flutter_bootstrap.js": "b25e79282cb8cf185486d1e477ed5ba4",
 "version.json": "95c74fc012629c6ab52f5ac72a497912",
 "index.html": "ad27c30bbc4f5122574357f63ae9fe78",
 "/": "ad27c30bbc4f5122574357f63ae9fe78",
-"main.dart.js": "784c65420e1661efa10aab37f1feba05",
+"main.dart.js": "df24cc6c8a11d696c5745b4c2afbea38",
 "flutter.js": "24bc71911b75b5f8135c949e27a2984e",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
@@ -22,7 +22,7 @@ const RESOURCES = {"flutter_bootstrap.js": "dfb820f515940df7ef8b3840e84fd3e2",
 "assets/shaders/ink_sparkle.frag": "ecc85a2e95f5e9f53123dcaf8cb9b6ce",
 "assets/shaders/stretch_effect.frag": "40d68efbbf360632f614c731219e95f0",
 "assets/AssetManifest.bin": "5f42cceb23aebb2558a5564ffb4aa746",
-"assets/fonts/MaterialIcons-Regular.otf": "8e062fa52ccfbd4e158f2d807b78bffe",
+"assets/fonts/MaterialIcons-Regular.otf": "92db99c20274b876db9963611c0a6e76",
 "assets/assets/quran/quran.json": "00d829f300d03f71a7a05cd1f5523f14",
 "assets/assets/fonts/Amiri-Bold.ttf": "4e6fcae427f9ae65c36f6a77f7f370e5",
 "assets/assets/fonts/UthmanicHafs.otf": "43269f118299246de0cf264e04ae2680",

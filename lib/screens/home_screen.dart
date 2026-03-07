@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'prayer_times_screen.dart';
 import 'qibla_screen.dart';
 import 'quran_screen.dart';
+import 'mosque_finder_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -33,6 +34,17 @@ class HomeScreen extends StatelessWidget {
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const QiblaScreen()),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          _Tile(
+            icon: Icons.location_on,
+            title: "Mosque Finder",
+            subtitle: "Find nearby mosques using your location",
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MosqueFinderScreen()),
             ),
           ),
           const SizedBox(height: 12),
